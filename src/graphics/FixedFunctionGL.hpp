@@ -54,4 +54,7 @@ struct FixedFunctionGL : GfxInterface
   private:
     SDL_Window *window;
     SDL_GLContext glContext;
+    f32 viewportScale;
+    i32 viewportOffsetX;
+    i32 viewportOffsetY;
 };

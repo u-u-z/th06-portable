@@ -156,7 +156,9 @@ GfxInterface *WebGL::Create()
 
     if (g_Supervisor.cfg.windowed == 0)
     {
-        flags |= SDL_WINDOW_FULLSCREEN;
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        width = 640;
+        height = 480;
     }
 
     SDL_Window *window = SDL_CreateWindow(TH_WINDOW_TITLE, x, y, width, height, flags);
@@ -182,6 +184,14 @@ GfxInterface *WebGL::Create()
     }
 
     SDL_GL_SetSwapInterval(1);
+
+    i32 drawableW, drawableH;
+    SDL_GL_GetDrawableSize(window, &drawableW, &drawableH);
+    f32 scaleX = (f32)drawableW / GAME_WINDOW_WIDTH;
+    f32 scaleY = (f32)drawableH / GAME_WINDOW_HEIGHT;
+    interface->viewportScale = scaleX < scaleY ? scaleX : scaleY;
+    interface->viewportOffsetX = ((f32)drawableW - GAME_WINDOW_WIDTH * interface->viewportScale) / 2.0f;
+    interface->viewportOffsetY = ((f32)drawableH - GAME_WINDOW_HEIGHT * interface->viewportScale) / 2.0f;
 
     // The ES profile request is not always honored,
     // so check if we really got it or the desktop one.
@@ -409,6 +419,10 @@ void WebGL::SetTextureFilter()
 void WebGL::GetViewport(u32 *viewport)
 {
     g_glFuncTable.glGetIntegerv(GL_VIEWPORT, (GLint *)viewport);
+    viewport[0] = (u32)(((i32)viewport[0] - viewportOffsetX) / viewportScale);
+    viewport[1] = (u32)(((i32)viewport[1] - viewportOffsetY) / viewportScale);
+    viewport[2] = (u32)((i32)viewport[2] / viewportScale);
+    viewport[3] = (u32)((i32)viewport[3] / viewportScale);
 }
 
 void WebGL::GetDepthRange(f32 *depthRange)
@@ -418,7 +432,11 @@ void WebGL::GetDepthRange(f32 *depthRange)
 
 void WebGL::SetViewport(i32 x, i32 y, i32 width, i32 height)
 {
-    g_glFuncTable.glViewport(x, y, width, height);
+    g_glFuncTable.glViewport(
+        (i32)(x * viewportScale + viewportOffsetX),
+        (i32)(y * viewportScale + viewportOffsetY),
+        (i32)(width * viewportScale),
+        (i32)(height * viewportScale));
 }
 
 void WebGL::SetDepthRange(f32 nearPlane, f32 farPlane)

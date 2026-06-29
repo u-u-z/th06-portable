@@ -79,4 +79,8 @@ struct WebGL : GfxInterface
     GLuint programHandle;
 
     GLint uniforms[UNIFORMS_COUNT];
+
+    f32 viewportScale;
+    i32 viewportOffsetX;
+    i32 viewportOffsetY;
 };
