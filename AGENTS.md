@@ -71,11 +71,30 @@ The binary is produced at `~/Downloads/th06-portable/th06`.
 ## Run Instructions
 
 ```bash
-cd "/Users/remi/Downloads/[th06] 东方红魔乡 (汉化版)"
-./th06_portable
+# First-time setup (requires original DAT files)
+cd game
+./setup.sh "/path/to/original/game/directory"
+
+# Run the game
+./th06
 ```
 
 The config tool (`./th06_config`) allows switching between fullscreen/windowed mode, refresh rate, and color depth.
+
+If you don't have a copy of the original game, the DAT files (紅魔郷*.DAT) are NOT included in this repository due to copyright. See [COPYRIGHT.md](COPYRIGHT.md).
+
+## Game Directory (`game/`)
+
+```
+game/
+├── th06              # Pre-built game binary (macOS arm64)
+├── th06_config       # Configuration utility
+├── setup.sh          # One-time setup: copies DAT files from original game
+├── .gitignore        # Excludes copyrighted DAT files from git
+├── 紅魔郷*.DAT        # After running setup.sh (gitignored)
+├── 東方紅魔郷.cfg     # After running setup.sh (gitignored)
+└── msgothic.ttc      # After running setup.sh (gitignored)
+```
 
 ## What Was Deleted
 
