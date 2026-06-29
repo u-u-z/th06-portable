@@ -93,6 +93,27 @@ myrepo  → https://github.com/u-u-z/th06-portable.git (user's fork)
 
 Current branch: `main`.
 
+### Upstream
+
+This fork is based on the `portable` branch of [GensokyoClub/th06](https://github.com/GensokyoClub/th06). The upstream repo has two branches:
+
+| Branch | Purpose |
+|--------|---------|
+| `master` | Decompilation project — reverse-engineer the original EXE (not used here) |
+| `portable` | Cross-platform port using SDL2/OpenGL (this fork's base) |
+
+The `portable` branch shares C++ game logic with `master`, but replaces the rendering/audio/input layer.
+
+### Checking for upstream updates
+
+```bash
+git fetch origin
+git log main..origin/portable --oneline   # see what's new upstream
+git merge origin/portable                   # merge upstream changes
+```
+
+The main modification on this fork (fullscreen Retina fix in `src/graphics/`) may conflict if upstream changes the same files. Resolve conflicts manually if needed.
+
 ## PBG3 Format (DAT files)
 
 All `.DAT` files are compressed with PBG3, ZUN's custom bit-level compression format. Implementation in `src/pbg3/`.
