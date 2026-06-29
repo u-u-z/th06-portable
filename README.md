@@ -53,6 +53,13 @@ cd build && make -j16
 cd game && ./th06
 ```
 
+`setup.sh` fetches two archives from [Releases](https://github.com/u-u-z/th06-portable/releases):
+
+| Archive | Size | Contents |
+|---------|------|----------|
+| `th06-chs-macos.tar.gz` | 308 MB | Game data (DAT, config, font) |
+| `th06-portable-macos.tar.gz` | 8.6 MB | Pre-compiled `th06` + `th06_config` |
+
 ### Manual
 
 Drop the compiled `th06` binary into your Touhou 6 game directory alongside the original `.DAT` resource files, `東方紅魔郷.cfg`, and a `msgothic.ttc` font file (e.g., NotoSans-Regular.ttf renamed).
