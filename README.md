@@ -46,6 +46,15 @@ cd build && make -j16
 
 ## Usage
 
+### Pre-built binary (macOS arm64)
+
+```bash
+./setup.sh       # Downloads game data + binary from GitHub Releases
+cd game && ./th06
+```
+
+### Manual
+
 Drop the compiled `th06` binary into your Touhou 6 game directory alongside the original `.DAT` resource files, `東方紅魔郷.cfg`, and a `msgothic.ttc` font file (e.g., NotoSans-Regular.ttf renamed).
 
 Run `th06_config` to adjust fullscreen/windowed mode, refresh rate, and color depth.
