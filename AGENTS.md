@@ -26,17 +26,17 @@ This is the `portable` branch of [GensokyoClub/th06](https://github.com/Gensokyo
 │   └── Software.cpp/hpp            # Software renderer fallback
 ├── build/                          # Build output directory
 ├── premake5.lua                    # Build system configuration
-├── th06                            # Compiled game binary
-├── th06_config                     # Configuration utility
+├── th06                            # Compiled game binary (in-tree)
+├── th06_config                     # Configuration utility (in-tree)
+├── setup.sh                        # One-click: download release → extract → merge → run
+├── game/                           # Runtime directory (after setup.sh)
+│   ├── th06, th06_config           # Binary copied from build or downloaded
+│   ├── 紅魔郷*.DAT                  # Game data (gitignored)
+│   ├── 東方紅魔郷.cfg               # Config (gitignored)
+│   └── msgothic.ttc                # Font (gitignored)
+├── README.md
+├── COPYRIGHT.md
 └── AGENTS.md                       # This file
-
-~/Downloads/[th06] 东方红魔乡 (汉化版)/  # Game runtime directory (Chinese version)
-├── th06_portable                   # Copied from th06-portable repo
-├── th06_config                     # Copied from th06-portable repo
-├── msgothic.ttc                    # Copied from NotoSans-Regular.ttf (font)
-├── *.DAT                           # Game resource files (required for running)
-├── 東方紅魔郷.cfg                   # Game configuration
-└── th06.exe                        # Original Chinese-patched EXE (not used)
 ```
 
 ## Key Modification: Fullscreen Viewport Scaling Fix
@@ -68,33 +68,80 @@ cd build && make -j16   # Compile
 
 The binary is produced at `~/Downloads/th06-portable/th06`.
 
+After building, copy the binary into `game/` for distribution:
+
+```bash
+cp th06 th06_config game/
+```
+
+## Setup / Release Flow
+
+The repo provides two paths to get the game running:
+
+### Path A: Pre-built binary (end user)
+
+```bash
+./setup.sh       # Downloads release archives from GitHub, extracts, merges
+cd game && ./th06
+```
+
+`setup.sh` does NOT compile anything — it downloads two pre-built `.tar.gz` archives from [GitHub Releases](https://github.com/u-u-z/th06-portable/releases):
+
+| Archive | Contents |
+|---------|----------|
+| `th06-chs-macos.tar.gz` (308 MB) | Game data: DAT files, config, font |
+| `th06-portable-macos.tar.gz` (8.6 MB) | Pre-compiled `th06` + `th06_config` binaries |
+
+It extracts both into `game/`, giving a ready-to-run directory.
+
+### Path B: Build from source (developer)
+
+```bash
+premake5 gmake && cd build && make -j16
+cp th06 th06_config game/
+./game/setup.sh "/path/to/original/game"   # Copies DAT from user's copy
+cd game && ./th06
+```
+
+`game/setup.sh` copies DAT files from a user-provided game directory (does not download anything).
+
+### Creating a new release
+
+After making code changes:
+
+```bash
+premake5 gmake && cd build && make -j16
+cp th06 th06_config game/
+cd game && tar -czf ../th06-portable-macos.tar.gz th06 th06_config
+cd .. && gh release create v1.1 th06-portable-macos.tar.gz --repo u-u-z/th06-portable
+```
+
+Update `TAG` in `setup.sh` to point to the new release.
+
 ## Run Instructions
 
 ```bash
-# First-time setup (requires original DAT files)
-cd game
-./setup.sh "/path/to/original/game/directory"
-
-# Run the game
-./th06
+cd game && ./th06
 ```
 
 The config tool (`./th06_config`) allows switching between fullscreen/windowed mode, refresh rate, and color depth.
-
-If you don't have a copy of the original game, the DAT files (紅魔郷*.DAT) are NOT included in this repository due to copyright. See [COPYRIGHT.md](COPYRIGHT.md).
 
 ## Game Directory (`game/`)
 
 ```
 game/
-├── th06              # Pre-built game binary (macOS arm64)
-├── th06_config       # Configuration utility
-├── setup.sh          # One-time setup: copies DAT files from original game
+├── th06              # Pre-built game binary (macOS arm64) — committed to git
+├── th06_config       # Configuration utility — committed to git
+├── setup.sh          # Copies DAT files from user's original game directory
 ├── .gitignore        # Excludes copyrighted DAT files from git
-├── 紅魔郷*.DAT        # After running setup.sh (gitignored)
+├── 紅魔郷*.DAT        # After running setup.sh (gitignored, copyright ZUN)
 ├── 東方紅魔郷.cfg     # After running setup.sh (gitignored)
 └── msgothic.ttc      # After running setup.sh (gitignored)
 ```
+
+DAT files are NOT in git. They are either:
+- Downloaded via root `setup.sh` from GitHub Releases (end user)
+- Copied via `game/setup.sh <dir>` from a local game copy (developer)
 
 ## What Was Deleted
 
