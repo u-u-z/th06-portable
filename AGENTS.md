@@ -91,4 +91,71 @@ origin  → https://github.com/GensokyoClub/th06.git  (upstream)
 myrepo  → https://github.com/u-u-z/th06-portable.git (user's fork)
 ```
 
-Current branch: `portable`.
+Current branch: `main`.
+
+## PBG3 Format (DAT files)
+
+All `.DAT` files are compressed with PBG3, ZUN's custom bit-level compression format. Implementation in `src/pbg3/`.
+
+### DAT file inventory
+
+| DAT file | Size | Contents |
+|----------|------|----------|
+| `紅魔郷CM.DAT` | 935 KB | ANM sprite/animation definitions — textures, sprite UV coords, animation scripts |
+| `紅魔郷ED.DAT` | 2.1 MB | Ending sequence data |
+| `紅魔郷IN.DAT` | 980 KB | ECL enemy scripts — bullet patterns, stage configuration |
+| `紅魔郷MD.DAT` | 1.2 MB | Audio — MIDI sequences + WAV samples |
+| `紅魔郷ST.DAT` | 3.3 MB | Stage data — backgrounds, enemy placement, layout |
+| `紅魔郷TL.DAT` | 1.3 MB | Title screen data |
+
+### File structure
+
+```
+┌─ Magic "PBG3" (4 bytes, 0x33474250)
+├─ Compressed bitstream
+│   ├─ Entries prefixed by name string (ReadString)
+│   ├─ Variable-length integers (ReadVarInt)
+│   └─ Raw binary blocks (ReadByteAlignedData)
+└─ CRC checksum
+```
+
+### Core algorithm
+
+**VarInt (variable-length integer)**
+
+Reads 2 header bits to determine the integer's bit width, then reads the value:
+```
+00 → 8-bit   (0 to 255)
+01 → 16-bit  (0 to 65535)
+10 → 24-bit  (0 to 16.7M)
+11 → 32-bit
+```
+
+This is the main space-saving mechanism — most game data (coordinates, IDs, frame counts) are small values that fit in 8 or 16 bits, but the format can store 32-bit values when needed. No dictionary, no Huffman trees, no back-references.
+
+**Bit-level reading**
+
+The parser consumes the stream one bit at a time via `bitIdxInCurByte` (0x80 → 1 → 0x80 cyclic). Each byte from disk is read only when the previous one is fully consumed:
+
+```
+byte:   [b7 b6 b5 b4 b3 b2 b1 b0]
+         ↑                   ↓
+         bitIdx=0x80    bitIdx=1
+```
+
+Adjacent fields don't need byte alignment — a 3-bit flag followed by a 15-bit value uses only 18 bits total, not 4 bytes.
+
+**ReadInt(n)**
+
+Reads `n` bits MSB-first, where `n` is passed as a power-of-two exponent (e.g., ReadInt(8) reads 8 bits, ReadInt(3) reads 8 bits via 2^3=8). Used for reading magic numbers, filenames, and known-width fields.
+
+**SeekToNextByte()**
+
+Skips remaining bits in the current byte (discards partial byte) to align to byte boundary. Used before ReadByteAlignedData which reads raw uncompressed binary (texture pixels, WAV audio, etc.).
+
+### Why no standard compression
+
+ZUN wrote this himself to avoid external library dependencies. The game was built with Visual Studio 2002 and no package manager existed. PBG3 is ~200 lines of C++ (src/pbg3/IPbg3Parser.cpp + Pbg3Parser.cpp). It achieves good compression on game data because:
+- Most values are small integers (coordinates, IDs, counts)
+- Texture names are short repeated strings
+- Pixel data and audio remain uncompressed within the stream
